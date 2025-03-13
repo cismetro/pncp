@@ -134,6 +134,14 @@ def healthcheck():
         'timestamp': datetime.now().isoformat()
     })
 
+"""
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+"""    
+    
+    
+# Agora a parte de configuração da porta
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 10000))  # Obtém a porta do ambiente ou usa 5000 como padrão
+    app.run(host="0.0.0.0", port=port)  # Inicia o servidor Flask na porta correta
