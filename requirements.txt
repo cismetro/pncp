@@ -1,0 +1,8 @@
+Flask==2.3.3
+requests>=2.32.2
+beautifulsoup4==4.12.2
+selenium==4.15.2
+webdriver-manager==4.0.1
+flask-cors==4.0.0
+gunicorn==21.2.0
+lxml==4.9.3

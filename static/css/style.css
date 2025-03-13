@@ -1,0 +1,158 @@
+/* Estilos personalizados */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #reportContent, #reportContent * {
+        visibility: visible;
+    }
+    #reportContent {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        color: black !important;
+        padding: 2cm;
+    }
+    #reportContent h1, #reportContent h2, 
+    #reportContent p, #reportContent li, 
+    #reportContent table, #reportContent td,
+    #reportContent th {
+        color: black !important;
+    }
+    #reportContent table, #reportContent th, #reportContent td {
+        border-color: black !important;
+    }
+}
+
+/* Estilos para os principais elementos */
+.result-card {
+    transition: transform 0.1s ease-in-out;
+}
+
+.result-card:hover {
+    transform: translateX(2px);
+}
+
+/* Versão melhorada com compatibilidade entre navegadores */
+.truncate-2-lines {
+    display: -webkit-box;
+    display: -moz-box;
+    display: box;
+    
+    -webkit-line-clamp: 2;
+    -moz-line-clamp: 2;
+    line-clamp: 2;
+    
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    box-orient: vertical;
+    
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 3em; /* Fallback para navegadores que não suportam line-clamp */
+}
+
+/* Estilos para a paginação */
+#pagination {
+    padding: 1rem 0;
+    border-top: 1px solid rgba(209, 213, 219, 0.5);
+    margin-top: 1.5rem;
+}
+
+#pagination button {
+    min-width: 100px;
+    transition: all 0.2s ease;
+}
+
+#pagination button:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+#pagination button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.pagination-info {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: rgba(99, 102, 241, 0.1);
+    border-radius: 0.375rem;
+    color: #6366f1;
+    font-weight: 500;
+}
+
+.dark .pagination-info {
+    background-color: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+}
+
+/* Indicador de carregamento */
+.loading-indicator {
+    position: relative;
+}
+
+.loading-indicator::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(2px);
+    z-index: 10;
+}
+
+.loading-indicator::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid rgba(99, 102, 241, 0.3);
+    border-top-color: rgba(99, 102, 241, 1);
+    animation: spin 1s linear infinite;
+    z-index: 11;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Indicador de carregamento de página */
+.page-loading {
+    position: relative;
+}
+
+.page-loading::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    animation: loadingBar 1.5s infinite ease-in-out;
+}
+
+@keyframes loadingBar {
+    0% { width: 0; left: 0; }
+    50% { width: 100%; left: 0; }
+    100% { width: 0; left: 100%; }
+}
+
+/* Ajustes para modo escuro nos elementos de carregamento */
+.dark .loading-indicator::before {
+    background-color: rgba(17, 24, 39, 0.7);
+}
+
+.dark .loading-indicator::after {
+    border-color: rgba(139, 92, 246, 0.3);
+    border-top-color: rgba(139, 92, 246, 1);
+}

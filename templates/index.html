@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de consulta ao Portal Nacional de Contratações Públicas (PNCP) - Lei 14.133/2021">
+    <title>Consulta PNCP - Portal Nacional de Contratações Públicas</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">Consulta PNCP</h1>
+            <p class="text-gray-600 dark:text-gray-400">Portal Nacional de Contratações Públicas</p>
+            <p class="text-sm text-indigo-600 dark:text-indigo-400 mt-2">Compatível com Lei 14.133/2021</p>
+        </header>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+            <form id="searchForm" class="space-y-4" aria-label="Formulário de busca">
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Termo de Busca</label>
+                    <input type="text" id="search" name="search" placeholder="Digite o termo de busca aqui..." 
+                           class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                           required>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="uf-display" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado (UF)</label>
+                        <input type="text" id="uf-display" value="SP" class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300" readonly>
+                        <input type="hidden" id="uf" name="uf" value="SP">
+                    </div>
+
+                    <div>
+                        <label for="modalidade-display" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modalidade</label>
+                        <input type="text" id="modalidade-display" value="Pregão Eletrônico" class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300" readonly>
+                        <input type="hidden" id="modalidade" name="modalidade" value="6">
+                    </div>
+
+                    <div>
+                        <label for="status-display" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                        <input type="text" id="status-display" value="Encerradas" class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300" readonly>
+                        <input type="hidden" id="status" name="status" value="encerradas">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" id="searchButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-search mr-2"></i>Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Área de resultados -->
+        <div id="resultsContainer" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8 hidden" aria-live="polite">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
+                    Editais e Avisos de Contratações <span id="statusDisplay" class="text-indigo-600 dark:text-indigo-400"></span>
+                </h2>
+                <a id="externalLink" href="#" target="_blank" rel="noopener noreferrer" class="text-indigo-600 dark:text-indigo-400 hover:underline text-sm flex items-center">
+                    Ver no PNCP <span class="ml-1"><i class="fas fa-external-link-alt"></i></span>
+                </a>
+            </div>
+            
+            <div id="loadingResults" class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600 dark:border-indigo-400 mb-2"></div>
+                <p class="text-gray-600 dark:text-gray-400">Carregando resultados...</p>
+            </div>
+            
+            <div id="searchInfo" class="mb-4 hidden">
+                <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    <span class="font-medium">Termo Pesquisado:</span> <span id="searchTermDisplay"></span>
+                </div>
+                <div class="text-sm text-gray-700 dark:text-gray-300">
+                    <span class="font-medium">Exibindo:</span> <span id="exibindoDisplay"></span> de <span id="totalDisplay"></span>
+                </div>
+                <div class="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                    <span class="font-medium">Tempo de busca:</span> <span id="searchTimeDisplay"></span>
+                </div>
+            </div>
+            
+            <!-- Lista de resultados -->
+            <div id="resultsList" class="space-y-4 hidden" aria-label="Resultados da busca"></div>
+            
+            <!-- Paginação -->
+            <div id="pagination" class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-3 hidden">
+                <div id="paginationInfo" class="text-sm text-gray-700 dark:text-gray-300">
+                    <!-- Preenchido via JavaScript -->
+                </div>
+                <div class="space-x-1 flex items-center">
+                    <!-- Elementos ocultos para armazenar dados de paginação -->
+                    <span id="currentPage" class="hidden">1</span>
+                    <span id="totalPages" class="hidden">1</span>
+                    
+                    <button id="prevPage" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" aria-label="Página anterior">
+                        <i class="fas fa-chevron-left mr-1"></i> Anterior
+                    </button>
+                    <button id="nextPage" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" aria-label="Próxima página">
+                        Próxima <i class="fas fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mensagens de erro e estado -->
+            <div id="errorMessage" class="text-center py-8 text-red-600 dark:text-red-400 hidden" role="alert"></div>
+            
+            <div id="noResults" class="text-center py-8 hidden">
+                <div class="text-yellow-600 dark:text-yellow-400 mb-3">
+                    <i class="fas fa-search fa-3x"></i>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400">Nenhum resultado encontrado para sua busca.</p>
+                <p class="text-gray-500 dark:text-gray-500 text-sm mt-2">Tente modificar os termos de busca ou utilize palavras-chave mais específicas.</p>
+            </div>
+            
+            <div id="reportButtonContainer" class="mt-6 hidden">
+                <button id="generatePDFButton" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                    <i class="fas fa-file-pdf mr-2"></i> Gerar Relatório para PDF
+                </button>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">Atende às exigências da Lei 14.133/2021</p>
+            </div>
+        </div>
+
+        <!-- Relatório PDF -->
+        <div id="pdfReportDiv" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8 hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Relatório para PDF</h2>
+                <button id="printButton" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
+                    <i class="fas fa-print mr-2"></i> Imprimir/Salvar PDF
+                </button>
+            </div>
+            
+            <div id="reportContent" class="p-6 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                <!-- O conteúdo do relatório será inserido aqui -->
+            </div>
+            
+            <div class="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900 rounded-lg text-sm">
+                <h3 class="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Instruções para salvar como PDF:</h3>
+                <ol class="list-decimal list-inside space-y-1 text-yellow-700 dark:text-yellow-300">
+                    <li>Clique no botão "Imprimir/Salvar PDF" acima</li>
+                    <li>Na janela de impressão, selecione "Salvar como PDF" ou "Microsoft Print to PDF" como destino</li>
+                    <li>Clique em "Salvar" e escolha o local para armazenar o arquivo</li>
+                    <li>O arquivo PDF gerado atende às exigências de documentação da Lei 14.133/2021</li>
+                </ol>
+            </div>
+            
+            <div class="mt-4 flex justify-end">
+                <button id="backToResults" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i> Voltar aos resultados
+                </button>
+            </div>
+        </div>
+        
+        <!-- Status de carregamento flutuante -->
+        <div id="loadingOverlay" class="fixed bottom-4 right-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-3 hidden z-50">
+            <div class="flex items-center space-x-3">
+                <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+                <p class="text-sm text-gray-700 dark:text-gray-300">Carregando...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white dark:bg-gray-800 text-center text-sm text-gray-500 dark:text-gray-400 py-4 mt-8 border-t border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4">
+            <p>Este sistema consulta dados públicos do <a href="https://pncp.gov.br" target="_blank" rel="noopener noreferrer" class="text-indigo-600 dark:text-indigo-400 hover:underline">Portal Nacional de Contratações Públicas</a></p>
+            <p class="mt-1">Compatível com a Lei de Licitações e Contratos Administrativos (Lei nº 14.133/2021)</p>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- Script para adicionar funcionalidade ao botão "Voltar aos resultados" -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const backToResultsButton = document.getElementById('backToResults');
+            if (backToResultsButton) {
+                backToResultsButton.addEventListener('click', function() {
+                    document.getElementById('pdfReportDiv').classList.add('hidden');
+                    document.getElementById('resultsContainer').classList.remove('hidden');
+                });
+            }
+            
+            // Detectar preferência de modo escuro
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            }
+            
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                if (event.matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
